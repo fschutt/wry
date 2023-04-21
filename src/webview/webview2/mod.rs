@@ -120,7 +120,10 @@ impl InnerWebView {
 
           options
             .SetLanguage(PCWSTR::from_raw(lang.as_ptr()))
-            .map_err(webview2_com::Error::WindowsError)?;
+            .map_err(|e| {
+              println!("1");
+              webview2_com::Error::WindowsError(e)
+            })?;
           options
         };
 
@@ -155,7 +158,10 @@ impl InnerWebView {
             &environmentcreatedhandler,
           )
         }
-        .map_err(webview2_com::Error::WindowsError)
+        .map_err(|e| {
+          println!("2");
+          webview2_com::Error::WindowsError(e)
+        })?;
       }),
       Box::new(move |error_code, environment| {
         error_code?;
@@ -167,7 +173,10 @@ impl InnerWebView {
 
     rx.recv()
       .map_err(|_| webview2_com::Error::SendError)?
-      .map_err(webview2_com::Error::WindowsError)
+      .map_err(|e| {
+        println!("3");
+        webview2_com::Error::WindowsError(e)
+      })?;
   }
 
   fn create_controller(
@@ -185,7 +194,10 @@ impl InnerWebView {
       Box::new(move |handler| unsafe {
         env
           .CreateCoreWebView2ControllerWithOptions(hwnd, &controller_opts, &handler)
-          .map_err(webview2_com::Error::WindowsError)
+          .map_err(|e| {
+            println!("4");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }),
       Box::new(move |error_code, controller| {
         error_code?;
@@ -197,7 +209,10 @@ impl InnerWebView {
 
     rx.recv()
       .map_err(|_| webview2_com::Error::SendError)?
-      .map_err(webview2_com::Error::WindowsError)
+      .map_err(|e| {
+        println!("5");
+        webview2_com::Error::WindowsError(e)
+      })?;
   }
 
   fn init_webview(
@@ -208,8 +223,10 @@ impl InnerWebView {
     controller: &ICoreWebView2Controller,
     pl_attrs: super::PlatformSpecificWebViewAttributes,
   ) -> webview2_com::Result<ICoreWebView2> {
-    let webview =
-      unsafe { controller.CoreWebView2() }.map_err(webview2_com::Error::WindowsError)?;
+    let webview = unsafe { controller.CoreWebView2() }.map_err(|e| {
+      println!("6");
+      webview2_com::Error::WindowsError(e)
+    })?;
 
     // theme
     if let Some(theme) = pl_attrs.theme {
@@ -246,46 +263,70 @@ impl InnerWebView {
         }));
       webview
         .add_WindowCloseRequested(&handler, &mut token)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("7");
+          webview2_com::Error::WindowsError(e)
+        })?;
 
-      let settings = webview
-        .Settings()
-        .map_err(webview2_com::Error::WindowsError)?;
-      settings
-        .SetIsStatusBarEnabled(false)
-        .map_err(webview2_com::Error::WindowsError)?;
+      let settings = webview.Settings().map_err(|e| {
+        println!("8");
+        webview2_com::Error::WindowsError(e)
+      })?;
+      settings.SetIsStatusBarEnabled(false).map_err(|e| {
+        println!("9");
+        webview2_com::Error::WindowsError(e)
+      })?;
       settings
         .SetAreDefaultContextMenusEnabled(true)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("10");
+          webview2_com::Error::WindowsError(e)
+        })?;
       settings
         .SetIsZoomControlEnabled(attributes.zoom_hotkeys_enabled)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("11");
+          webview2_com::Error::WindowsError(e)
+        })?;
       settings
         .SetAreDevToolsEnabled(attributes.devtools)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("12");
+          webview2_com::Error::WindowsError(e)
+        })?;
       if !pl_attrs.browser_accelerator_keys {
         if let Ok(settings3) = settings.cast::<ICoreWebView2Settings3>() {
           settings3
             .SetAreBrowserAcceleratorKeysEnabled(false)
-            .map_err(webview2_com::Error::WindowsError)?;
+            .map_err(|e| {
+              println!("13");
+              webview2_com::Error::WindowsError(e)
+            })?;
         }
       }
 
       let settings5 = settings.cast::<ICoreWebView2Settings5>()?;
       settings5
         .SetIsPinchZoomEnabled(attributes.zoom_hotkeys_enabled)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("14");
+          webview2_com::Error::WindowsError(e)
+        })?;
 
       let settings6 = settings.cast::<ICoreWebView2Settings6>()?;
       settings6
         .SetIsSwipeNavigationEnabled(attributes.back_forward_navigation_gestures)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("15");
+          webview2_com::Error::WindowsError(e)
+        })?;
 
       let mut rect = RECT::default();
       win32wm::GetClientRect(hwnd, &mut rect);
-      controller
-        .SetBounds(rect)
-        .map_err(webview2_com::Error::WindowsError)?;
+      controller.SetBounds(rect).map_err(|e| {
+        println!("16");
+        webview2_com::Error::WindowsError(e)
+      })?;
     }
 
     // document title changed handler
@@ -305,7 +346,10 @@ impl InnerWebView {
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("17");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -381,7 +425,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
         &mut token,
       )
     }
-    .map_err(webview2_com::Error::WindowsError)?;
+    .map_err(|e| {
+      println!("18");
+      webview2_com::Error::WindowsError(e)
+    })?;
 
     if let Some(nav_callback) = attributes.navigation_handler {
       unsafe {
@@ -402,7 +449,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("19");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -410,8 +460,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
       || attributes.download_completed_handler.is_some()
     {
       unsafe {
-        let webview4: ICoreWebView2_4 =
-          webview.cast().map_err(webview2_com::Error::WindowsError)?;
+        let webview4: ICoreWebView2_4 = webview.cast().map_err(|e| {
+          println!("21");
+          webview2_com::Error::WindowsError(e)
+        })?;
 
         let mut download_started_handler = attributes.download_started_handler.take();
         let download_completed_handler = attributes.download_completed_handler.take();
@@ -475,7 +527,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("22");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -498,7 +553,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("23");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -514,7 +572,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
           )
         }
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("24");
+          webview2_com::Error::WindowsError(e)
+        })?;
       }
 
       let custom_protocols = attributes.custom_protocols;
@@ -654,7 +715,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("25");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -675,17 +739,20 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
             })),
             &mut token,
           )
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("26");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
     // Set user agent
     if let Some(user_agent) = attributes.user_agent {
       unsafe {
-        let settings: ICoreWebView2Settings2 = webview
-          .Settings()?
-          .cast()
-          .map_err(webview2_com::Error::WindowsError)?;
+        let settings: ICoreWebView2Settings2 = webview.Settings()?.cast().map_err(|e| {
+          println!("27");
+          webview2_com::Error::WindowsError(e)
+        })?;
         settings.SetUserAgent(PCWSTR::from_raw(encode_wide(user_agent).as_ptr()))?;
       }
     }
@@ -699,7 +766,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
           unsafe {
             webview
               .NavigateToString(PCWSTR::from_raw(encode_wide(path).as_ptr()))
-              .map_err(webview2_com::Error::WindowsError)?;
+              .map_err(|e| {
+                println!("28");
+                webview2_com::Error::WindowsError(e)
+              })?;
           }
         }
       } else {
@@ -719,7 +789,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
           unsafe {
             webview
               .Navigate(PCWSTR::from_raw(encode_wide(url_string).as_ptr()))
-              .map_err(webview2_com::Error::WindowsError)?;
+              .map_err(|e| {
+                println!("29");
+                webview2_com::Error::WindowsError(e)
+              })?;
           }
         }
       }
@@ -727,7 +800,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
       unsafe {
         webview
           .NavigateToString(PCWSTR::from_raw(encode_wide(html).as_ptr()))
-          .map_err(webview2_com::Error::WindowsError)?;
+          .map_err(|e| {
+            println!("30");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }
     }
 
@@ -780,12 +856,16 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
     }
 
     unsafe {
-      controller
-        .SetIsVisible(true)
-        .map_err(webview2_com::Error::WindowsError)?;
+      controller.SetIsVisible(true).map_err(|e| {
+        println!("31");
+        webview2_com::Error::WindowsError(e)
+      })?;
       controller
         .MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC)
-        .map_err(webview2_com::Error::WindowsError)?;
+        .map_err(|e| {
+          println!("32");
+          webview2_com::Error::WindowsError(e)
+        })?;
     }
 
     Ok(webview)
@@ -800,7 +880,10 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
       Box::new(move |handler| unsafe {
         handler_webview
           .AddScriptToExecuteOnDocumentCreated(PCWSTR::from_raw(encode_wide(js).as_ptr()), &handler)
-          .map_err(webview2_com::Error::WindowsError)
+          .map_err(|e| {
+            println!("33");
+            webview2_com::Error::WindowsError(e)
+          })?;
       }),
       Box::new(|_, _| Ok(())),
     )
@@ -845,10 +928,16 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
     callback: Option<impl FnOnce(String) + Send + 'static>,
   ) -> Result<()> {
     match callback {
-      Some(callback) => Self::execute_script(&self.webview, js.to_string(), callback)
-        .map_err(|err| Error::WebView2Error(webview2_com::Error::WindowsError(err))),
-      None => Self::execute_script(&self.webview, js.to_string(), |_| ())
-        .map_err(|err| Error::WebView2Error(webview2_com::Error::WindowsError(err))),
+      Some(callback) => {
+        Self::execute_script(&self.webview, js.to_string(), callback).map_err(|err| {
+          println!("34");
+          Error::WebView2Error(webview2_com::Error::WindowsError(err))
+        })
+      }
+      None => Self::execute_script(&self.webview, js.to_string(), |_| ()).map_err(|err| {
+        println!("35");
+        MError::WebView2Error(webview2_com::Error::WindowsError(err))
+      }),
     }
   }
 
@@ -888,13 +977,25 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
       self
         .webview
         .cast::<ICoreWebView2_13>()
-        .map_err(|e| Error::WebView2Error(webview2_com::Error::WindowsError(e)))?
+        .map_err(|err| {
+          println!("37");
+          Error::WebView2Error(webview2_com::Error::WindowsError(err))
+        })
         .Profile()
-        .map_err(|e| Error::WebView2Error(webview2_com::Error::WindowsError(e)))?
+        .map_err(|err| {
+          println!("38");
+          Error::WebView2Error(webview2_com::Error::WindowsError(err))
+        })
         .cast::<ICoreWebView2Profile2>()
-        .map_err(|e| Error::WebView2Error(webview2_com::Error::WindowsError(e)))?
+        .map_err(|err| {
+          println!("39");
+          Error::WebView2Error(webview2_com::Error::WindowsError(err))
+        })
         .ClearBrowsingDataAll(&handler)
-        .map_err(|e| Error::WebView2Error(webview2_com::Error::WindowsError(e)))
+        .map_err(|err| {
+          println!("40");
+          Error::WebView2Error(webview2_com::Error::WindowsError(err))
+        })
     }
   }
 
@@ -950,9 +1051,10 @@ pub fn set_background_color(
     color.3 = 255;
   }
 
-  let controller2: ICoreWebView2Controller2 = controller
-    .cast()
-    .map_err(webview2_com::Error::WindowsError)?;
+  let controller2: ICoreWebView2Controller2 = controller.cast().map_err(|e| {
+    println!("41");
+    webview2_com::Error::WindowsError(e)
+  })?;
   unsafe {
     controller2
       .SetDefaultBackgroundColor(COREWEBVIEW2_COLOR {
@@ -961,7 +1063,10 @@ pub fn set_background_color(
         B: color.2,
         A: color.3,
       })
-      .map_err(webview2_com::Error::WindowsError)
+      .map_err(|e| {
+        println!("42");
+        webview2_com::Error::WindowsError(e)
+      })?;
   }
 }
 
@@ -983,7 +1088,10 @@ fn set_theme(webview: &ICoreWebView2, theme: Theme) {
 pub fn platform_webview_version() -> Result<String> {
   let mut versioninfo = PWSTR::null();
   unsafe { GetAvailableCoreWebView2BrowserVersionString(PCWSTR::null(), &mut versioninfo) }
-    .map_err(webview2_com::Error::WindowsError)?;
+    .map_err(|e| {
+      println!("43");
+      webview2_com::Error::WindowsError(e)
+    })?;
   Ok(take_pwstr(versioninfo))
 }
 
