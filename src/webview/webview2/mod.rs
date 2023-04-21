@@ -161,7 +161,7 @@ impl InnerWebView {
         .map_err(|e| {
           println!("2");
           webview2_com::Error::WindowsError(e)
-        })?;
+        })
       }),
       Box::new(move |error_code, environment| {
         error_code?;
@@ -176,7 +176,7 @@ impl InnerWebView {
       .map_err(|e| {
         println!("3");
         webview2_com::Error::WindowsError(e)
-      })?;
+      })
   }
 
   fn create_controller(
@@ -197,7 +197,7 @@ impl InnerWebView {
           .map_err(|e| {
             println!("4");
             webview2_com::Error::WindowsError(e)
-          })?;
+          })
       }),
       Box::new(move |error_code, controller| {
         error_code?;
@@ -212,7 +212,7 @@ impl InnerWebView {
       .map_err(|e| {
         println!("5");
         webview2_com::Error::WindowsError(e)
-      })?;
+      })
   }
 
   fn init_webview(
@@ -883,7 +883,7 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
           .map_err(|e| {
             println!("33");
             webview2_com::Error::WindowsError(e)
-          })?;
+          })
       }),
       Box::new(|_, _| Ok(())),
     )
@@ -936,7 +936,7 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
       }
       None => Self::execute_script(&self.webview, js.to_string(), |_| ()).map_err(|err| {
         println!("35");
-        MError::WebView2Error(webview2_com::Error::WindowsError(err))
+        Error::WebView2Error(webview2_com::Error::WindowsError(err))
       }),
     }
   }
@@ -980,17 +980,17 @@ window.addEventListener('mousemove', (e) => window.chrome.webview.postMessage('_
         .map_err(|err| {
           println!("37");
           Error::WebView2Error(webview2_com::Error::WindowsError(err))
-        })
+        })?
         .Profile()
         .map_err(|err| {
           println!("38");
           Error::WebView2Error(webview2_com::Error::WindowsError(err))
-        })
+        })?
         .cast::<ICoreWebView2Profile2>()
         .map_err(|err| {
           println!("39");
           Error::WebView2Error(webview2_com::Error::WindowsError(err))
-        })
+        })?
         .ClearBrowsingDataAll(&handler)
         .map_err(|err| {
           println!("40");
@@ -1066,7 +1066,7 @@ pub fn set_background_color(
       .map_err(|e| {
         println!("42");
         webview2_com::Error::WindowsError(e)
-      })?;
+      })
   }
 }
 
